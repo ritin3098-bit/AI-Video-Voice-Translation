@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoxBridge — AI Video Translator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d0d14;
+  --paper: #f5f3ee;
+  --accent: #e8611a;
+  --accent2: #1a3de8;
+  --muted: #8a8880;
+  --border: rgba(13,13,20,0.10);
+  --card: #ffffff;
+  --error: #d63031;
+  --success: #00b894;
+  --sidebar-w: 260px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.sidebar::before {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(232,97,26,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 40px;
+  padding-left: 4px;
+}
+
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: #fff; letter-spacing: -0.5px;
+}
+
+.nav-section {
+  font-size: 10px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.25);
+  padding: 0 8px; margin-bottom: 8px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 14px; font-weight: 400;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 2px;
+  transition: all 0.18s;
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.85);
+}
+
+.nav-item.active {
+  background: rgba(232,97,26,0.15);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar-divider {
+  height: 1px; background: rgba(255,255,255,0.07);
+  margin: 16px 0;
+}
+
+.sidebar-spacer { flex: 1; }
+
+.user-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.user-avatar {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+
+.user-info { flex: 1; min-width: 0; }
+
+.user-name {
+  font-size: 13px; font-weight: 500; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.user-role { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+.logout-btn {
+  background: none; border: none;
+  color: rgba(255,255,255,0.3); cursor: pointer;
+  font-size: 16px; padding: 4px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.logout-btn:hover { color: var(--accent); }
+
+/* ===== MAIN ===== */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+  background: rgba(245,243,238,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+
+.topbar-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 700; letter-spacing: -0.5px;
+}
+
+.topbar-subtitle { font-size: 13px; color: var(--muted); margin-top: 1px; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,184,148,0.1);
+  border: 1px solid rgba(0,184,148,0.25);
+  color: var(--success);
+  font-size: 12px; font-weight: 500;
+  padding: 5px 12px; border-radius: 50px;
+}
+
+.badge-dot {
+  width: 6px; height: 6px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ===== CONTENT ===== */
+.content { padding: 32px 36px; flex: 1; }
+
+/* ===== STATS ROW ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+.stat-label { font-size: 11px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 700; letter-spacing: -1px;
+}
+
+.stat-sub { font-size: 12px; color: var(--muted); }
+
+.stat-card.accent { background: var(--accent); border-color: var(--accent); }
+.stat-card.accent .stat-label, .stat-card.accent .stat-sub { color: rgba(255,255,255,0.7); }
+.stat-card.accent .stat-value { color: #fff; }
+
+/* ===== MAIN GRID ===== */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+}
+
+/* ===== UPLOAD PANEL ===== */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.panel-head {
+  padding: 20px 24px 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.panel-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700;
+}
+
+.panel-body { padding: 24px; }
+
+/* ===== LANGUAGE TABS ===== */
+.lang-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 24px;
+}
+
+.lang-tab {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.18s;
+  background: transparent;
+}
+
+.lang-tab:hover { border-color: var(--accent); background: rgba(232,97,26,0.04); }
+
+.lang-tab.selected {
+  border-color: var(--accent);
+  background: rgba(232,97,26,0.08);
+}
+
+.lang-flag { font-size: 22px; display: block; margin-bottom: 4px; }
+.lang-name { font-size: 12px; font-weight: 500; }
+.lang-native { font-size: 10px; color: var(--muted); }
+
+/* ===== DROP ZONE ===== */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  background: rgba(245,243,238,0.5);
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(232,97,26,0.04);
+}
+
+.drop-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+
+.drop-icon {
+  width: 60px; height: 60px;
+  background: var(--ink);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 16px;
+}
+
+.drop-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.drop-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+.drop-formats {
+  display: flex; gap: 6px; justify-content: center;
+}
+
+.fmt-tag {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.5px;
+  padding: 3px 10px;
+  color: var(--muted);
+}
+
+/* ===== SELECTED FILE ===== */
+.file-selected {
+  display: none;
+  background: rgba(0,184,148,0.06);
+  border: 1.5px solid rgba(0,184,148,0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  align-items: center; gap: 12px;
+}
+
+.file-icon {
+  width: 40px; height: 40px;
+  background: var(--success);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+
+.file-meta { flex: 1; min-width: 0; }
+.file-fname { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-size { font-size: 11px; color: var(--muted); }
+
+.file-remove {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 18px;
+  padding: 4px; transition: color 0.2s;
+}
+.file-remove:hover { color: var(--error); }
+
+/* ===== SUBMIT BTN ===== */
+.btn-translate {
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+  background: var(--ink);
+  color: #fff;
+  border: none; border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+
+.btn-translate:hover {
+  background: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(232,97,26,0.3);
+}
+
+.btn-translate:disabled {
+  background: #ccc; cursor: not-allowed; transform: none; box-shadow: none;
+}
+
+.btn-translate .spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== PROGRESS PANEL ===== */
+.progress-panel {
+  display: none;
+  margin-top: 20px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.prog-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.prog-label { font-size: 13px; font-weight: 500; }
+.prog-pct {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--accent);
+}
+
+.prog-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.prog-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+
+.prog-steps {
+  display: flex; gap: 4px; margin-bottom: 10px;
+}
+
+.prog-step {
+  flex: 1; height: 3px;
+  background: var(--border);
+  border-radius: 10px;
+  transition: background 0.4s;
+}
+
+.prog-step.done { background: var(--success); }
+.prog-step.active { background: var(--accent); animation: blink 1s infinite; }
+
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.prog-msg { font-size: 12px; color: var(--muted); }
+
+/* ===== DOWNLOAD PANEL ===== */
+.download-panel {
+  display: none;
+  margin-top: 20px;
+  background: rgba(0,184,148,0.06);
+  border: 1.5px solid rgba(0,184,148,0.25);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.dl-icon { font-size: 36px; margin-bottom: 8px; }
+.dl-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--success); margin-bottom: 4px; }
+.dl-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+.btn-download {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px;
+  background: var(--success);
+  color: #fff;
+  border: none; border-radius: 10px;
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-download:hover {
+  background: #00a381;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,184,148,0.3);
+}
+
+.btn-new {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  background: none;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 10px;
+}
+
+.btn-new:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ===== ERROR ===== */
+.error-banner {
+  display: none;
+  background: rgba(214,48,49,0.08);
+  border: 1px solid rgba(214,48,49,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: var(--error);
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+/* ===== SIDE PANEL ===== */
+.side-stack { display: flex; flex-direction: column; gap: 16px; }
+
+/* ===== HOW IT WORKS ===== */
+.hiw-step {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 16px;
+}
+
+.hiw-step + .hiw-step { border-top: 1px solid var(--border); }
+
+.hiw-num {
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: var(--ink);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: #fff;
+}
+
+.hiw-text {}
+.hiw-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.hiw-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ===== VOICE QUALITY PANEL ===== */
+.quality-list { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+.quality-item {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.quality-lang { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.quality-voice { font-size: 11px; color: var(--muted); }
+
+.quality-bar-wrap { width: 80px; }
+.quality-bar-track { height: 4px; background: var(--border); border-radius: 10px; overflow: hidden; }
+.quality-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+
+/* ===== HISTORY ===== */
+.history-list { padding: 8px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+.hist-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--paper);
+  font-size: 13px;
+}
+
+.hist-icon { font-size: 18px; }
+.hist-name { font-weight: 500; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-lang {
+  font-size: 11px; color: var(--accent);
+  background: rgba(232,97,26,0.1); border-radius: 50px; padding: 2px 8px;
+}
+
+.no-history { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--ink); color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+  transform: translateY(80px); opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 999;
+  max-width: 300px;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--error); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .main-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .main { margin-left: 0; }
+  .content { padding: 20px 16px; }
+  .topbar { padding: 14px 16px; }
+}
+
+/* Custom Switch Slider */
+.slider-btn::before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+#lipSyncToggle:checked + .slider-btn {
+  background-color: var(--accent) !important;
+}
+#lipSyncToggle:checked + .slider-btn::before {
+  transform: translateX(20px);
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">🎙</div>
+    <span class="logo-name">VoxBridge</span>
+  </div>
+
+  <div class="nav-section">Main</div>
+  <a class="nav-item active" href="#">
+    <span class="nav-icon">🎬</span> Translate Video
+  </a>
+  <a class="nav-item" href="#">
+    <span class="nav-icon">📂</span> My Videos
+  </a>
+
+  <div class="sidebar-divider"></div>
+  <div class="nav-section">Languages</div>
+  <a class="nav-item" href="#"><span class="nav-icon">🇮🇳</span> Hindi</a>
+  <a class="nav-item" href="#"><span class="nav-icon">🇮🇳</span> Gujarati</a>
+  <a class="nav-item" href="#"><span class="nav-icon">🇮🇳</span> Bengali</a>
+  <a class="nav-item" href="#"><span class="nav-icon">🇮🇳</span> Tamil</a>
+  <a class="nav-item" href="#"><span class="nav-icon">🇮🇳</span> Marathi</a>
+  <a class="nav-item" href="#"><span class="nav-icon">🇮🇳</span> Telugu</a>
+
+  <div class="sidebar-divider"></div>
+  <div class="nav-section">Account</div>
+  <a class="nav-item" href="#"><span class="nav-icon">⚙️</span> Settings</a>
+
+  <div class="sidebar-spacer"></div>
+
+  <div class="user-card">
+    <div class="user-avatar" id="avatarInitial">U</div>
+    <div class="user-info">
+      <div class="user-name" id="sidebarName">Loading...</div>
+      <div class="user-role">Free Plan</div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()" title="Sign out">⎋</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div>
+      <div class="topbar-title">Video Translation Studio</div>
+      <div class="topbar-subtitle">Upload, translate, and download in minutes</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="badge">
+        <div class="badge-dot"></div>
+        AI Ready
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card accent">
+        <div class="stat-label">Languages</div>
+        <div class="stat-value">6</div>
+        <div class="stat-sub">Indian languages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Your Translations</div>
+        <div class="stat-value" id="statVideos">0</div>
+        <div class="stat-sub">Videos processed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Voice Engine</div>
+        <div class="stat-value" style="font-size:18px;letter-spacing:0">Neural TTS</div>
+        <div class="stat-sub">Edge TTS + Whisper AI</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sync Accuracy</div>
+        <div class="stat-value">±0.1s</div>
+        <div class="stat-sub">Timing precision</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+      <!-- LEFT: Upload Panel -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">New Translation</span>
+          <span style="font-size:12px;color:var(--muted);">Step 1 of 2</span>
+        </div>
+        <div class="panel-body">
+
+          <!-- Language Selection -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">
+              1. Choose Target Language
+            </div>
+            <div class="lang-grid">
+              <div class="lang-tab selected" data-lang="hi" onclick="selectLang(this)">
+                <span class="lang-flag">🇮🇳</span>
+                <div class="lang-name">Hindi</div>
+                <div class="lang-native">हिन्दी</div>
+              </div>
+              <div class="lang-tab" data-lang="mr" onclick="selectLang(this)">
+                <span class="lang-flag">🇮🇳</span>
+                <div class="lang-name">Marathi</div>
+                <div class="lang-native">मराठी</div>
+              </div>
+              <div class="lang-tab" data-lang="ta" onclick="selectLang(this)">
+                <span class="lang-flag">🇮🇳</span>
+                <div class="lang-name">Tamil</div>
+                <div class="lang-native">தமிழ்</div>
+              </div>
+              <div class="lang-tab" data-lang="gu" onclick="selectLang(this)">
+                <span class="lang-flag">🇮🇳</span>
+                <div class="lang-name">Gujarati</div>
+                <div class="lang-native">ગુજરાતી</div>
+              </div>
+              <div class="lang-tab" data-lang="bn" onclick="selectLang(this)">
+                <span class="lang-flag">🇮🇳</span>
+                <div class="lang-name">Bengali</div>
+                <div class="lang-native">বাংলা</div>
+              </div>
+              <div class="lang-tab" data-lang="te" onclick="selectLang(this)">
+                <span class="lang-flag">🇮🇳</span>
+                <div class="lang-name">Telugu</div>
+                <div class="lang-native">తెలుగు</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Zone -->
+          <div style="font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">
+            2. Upload Your Video
+          </div>
+
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".mp4,.avi,.mov,.mkv" onchange="handleFile(this.files[0])">
+            <div class="drop-icon">🎬</div>
+            <div class="drop-title">Drop your video here</div>
+            <div class="drop-sub">or click to browse your files</div>
+            <div class="drop-formats">
+              <span class="fmt-tag">MP4</span>
+              <span class="fmt-tag">AVI</span>
+              <span class="fmt-tag">MOV</span>
+              <span class="fmt-tag">MKV</span>
+              <span class="fmt-tag">Max 500MB</span>
+            </div>
+          </div>
+
+          <div class="file-selected" id="fileSelected">
+            <div class="file-icon">✅</div>
+            <div class="file-meta">
+              <div class="file-fname" id="fileNameDisplay">filename.mp4</div>
+              <div class="file-size" id="fileSizeDisplay">0 MB</div>
+            </div>
+            <button class="file-remove" onclick="removeFile()" title="Remove">✕</button>
+          </div>
+
+          <div class="error-banner" id="errorBanner"></div>
+
+          <!-- Translation Settings -->
+          <div style="margin-top:24px; margin-bottom:20px; padding:16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px;">
+            <div style="font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px; text-align:left;">
+              3. Translation Settings
+            </div>
+            
+            <!-- Voice Engine Selection -->
+            <div style="margin-bottom:16px; text-align:left;">
+              <label style="display:block; font-size:13px; font-weight:500; margin-bottom:8px; color:var(--ink);">Voice Engine</label>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div id="engineEdge" class="lang-tab selected" style="padding:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:10px; cursor:pointer;" onclick="selectEngine('edge')">
+                  <span style="font-size:18px; margin-bottom:4px;">⚡</span>
+                  <span style="font-size:12px; font-weight:500; color:var(--ink);">Neural Voice</span>
+                  <span style="font-size:10px; color:var(--muted);">Edge-TTS (Fast)</span>
+                </div>
+                <div id="engineXtts" class="lang-tab" style="padding:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:10px; cursor:pointer;" onclick="selectEngine('xtts')">
+                  <span style="font-size:18px; margin-bottom:4px;">🗣️</span>
+                  <span style="font-size:12px; font-weight:500; color:var(--ink);">Voice Clone</span>
+                  <span style="font-size:10px; color:var(--muted);">XTTS (Hindi only)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lip Sync Toggle -->
+            <div style="display:flex; align-items:center; justify-content:space-between; padding-top:12px; border-top:1px solid rgba(13,13,20,0.08);">
+              <div style="flex:1; padding-right:12px; text-align:left;">
+                <label style="display:block; font-size:13px; font-weight:500; color:var(--ink); cursor:pointer;" for="lipSyncToggle">Lip Sync (Wav2Lip)</label>
+                <span style="font-size:11px; color:var(--muted);">Sync mouth movements to translated voice</span>
+              </div>
+              <label style="position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; margin:0;">
+                <input type="checkbox" id="lipSyncToggle" style="opacity:0; width:0; height:0;" onchange="toggleLipSync(this.checked)">
+                <span class="slider-btn" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:34px;"></span>
+              </label>
+            </div>
+          </div>
+
+          <button class="btn-translate" id="translateBtn" onclick="startTranslation()" disabled>
+            <div class="spinner" id="spinner"></div>
+            <span id="btnText">⚡ Translate Video</span>
+          </button>
+
+          <!-- Progress -->
+          <div class="progress-panel" id="progressPanel">
+            <div class="prog-header">
+              <div class="prog-label" id="progLabel">Transcribing audio...</div>
+              <div class="prog-pct" id="progPct">0%</div>
+            </div>
+            <div class="prog-track">
+              <div class="prog-fill" id="progFill"></div>
+            </div>
+            <div class="prog-steps">
+              <div class="prog-step" id="ps1" title="Transcribe"></div>
+              <div class="prog-step" id="ps2" title="Translate"></div>
+              <div class="prog-step" id="ps3" title="Voice Gen"></div>
+              <div class="prog-step" id="ps4" title="Sync"></div>
+              <div class="prog-step" id="ps5" title="Merge"></div>
+            </div>
+            <div class="prog-msg" id="progMsg">Initializing AI pipeline...</div>
+          </div>
+
+          <!-- Download -->
+          <div class="download-panel" id="downloadPanel">
+            <div class="dl-icon">🎉</div>
+            <div class="dl-title">Translation Complete!</div>
+            <div class="dl-sub" id="dlSub">Your video is ready in the selected language.</div>
+            <div>
+              <a class="btn-download" id="dlBtn" href="#" download>⬇ Download Video</a>
+              <button class="btn-new" onclick="resetAll()">+ New Video</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: Side Stack -->
+      <div class="side-stack">
+
+        <!-- How It Works -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">How It Works</span>
+          </div>
+          <div class="hiw-step">
+            <div class="hiw-num">1</div>
+            <div class="hiw-text">
+              <div class="hiw-title">Whisper Transcription</div>
+              <div class="hiw-desc">OpenAI Whisper transcribes speech with word-level timestamps for precise sync.</div>
+            </div>
+          </div>
+          <div class="hiw-step">
+            <div class="hiw-num">2</div>
+            <div class="hiw-text">
+              <div class="hiw-title">Neural Translation</div>
+              <div class="hiw-desc">Google Translate converts subtitle segments with context preservation.</div>
+            </div>
+          </div>
+          <div class="hiw-step">
+            <div class="hiw-num">3</div>
+            <div class="hiw-text">
+              <div class="hiw-title">Adaptive TTS Voice</div>
+              <div class="hiw-desc">Microsoft Edge TTS generates natural speech, then time-stretched to match original timing exactly.</div>
+            </div>
+          </div>
+          <div class="hiw-step">
+            <div class="hiw-num">4</div>
+            <div class="hiw-text">
+              <div class="hiw-title">Audio-Video Merge</div>
+              <div class="hiw-desc">FFmpeg mixes TTS audio at full volume with subtle original audio backdrop.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Voice Quality -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">Voice Quality</span>
+          </div>
+          <div class="quality-list">
+            <div class="quality-item">
+              <div>
+                <div class="quality-lang">🇮🇳 Hindi <span style="font-size:10px;color:var(--muted);font-weight:400;">Swara</span></div>
+                <div class="quality-voice">hi-IN-SwaraNeural</div>
+              </div>
+              <div class="quality-bar-wrap">
+                <div class="quality-bar-track"><div class="quality-bar-fill" style="width:95%"></div></div>
+              </div>
+            </div>
+            <div class="quality-item">
+              <div>
+                <div class="quality-lang">🇮🇳 Gujarati <span style="font-size:10px;color:var(--muted);font-weight:400;">Niranjan</span></div>
+                <div class="quality-voice">gu-IN-NiranjanNeural</div>
+              </div>
+              <div class="quality-bar-wrap">
+                <div class="quality-bar-track"><div class="quality-bar-fill" style="width:90%"></div></div>
+              </div>
+            </div>
+            <div class="quality-item">
+              <div>
+                <div class="quality-lang">🇮🇳 Bengali <span style="font-size:10px;color:var(--muted);font-weight:400;">Bashkar</span></div>
+                <div class="quality-voice">bn-IN-BashkarNeural</div>
+              </div>
+              <div class="quality-bar-wrap">
+                <div class="quality-bar-track"><div class="quality-bar-fill" style="width:88%"></div></div>
+              </div>
+            </div>
+            <div class="quality-item">
+              <div>
+                <div class="quality-lang">🇮🇳 Tamil <span style="font-size:10px;color:var(--muted);font-weight:400;">Pallavi</span></div>
+                <div class="quality-voice">ta-IN-PallaviNeural</div>
+              </div>
+              <div class="quality-bar-wrap">
+                <div class="quality-bar-track"><div class="quality-bar-fill" style="width:87%"></div></div>
+              </div>
+            </div>
+            <div class="quality-item">
+              <div>
+                <div class="quality-lang">🇮🇳 Marathi <span style="font-size:10px;color:var(--muted);font-weight:400;">Aarohi</span></div>
+                <div class="quality-voice">mr-IN-AarohiNeural</div>
+              </div>
+              <div class="quality-bar-wrap">
+                <div class="quality-bar-track"><div class="quality-bar-fill" style="width:89%"></div></div>
+              </div>
+            </div>
+            <div class="quality-item">
+              <div>
+                <div class="quality-lang">🇮🇳 Telugu <span style="font-size:10px;color:var(--muted);font-weight:400;">Shruti</span></div>
+                <div class="quality-voice">te-IN-ShrutiNeural</div>
+              </div>
+              <div class="quality-bar-wrap">
+                <div class="quality-bar-track"><div class="quality-bar-fill" style="width:86%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">Recent Translations</span>
+            <span style="font-size:12px;color:var(--muted);cursor:pointer;" onclick="loadHistory()">↻ Refresh</span>
+          </div>
+          <div id="historyList" class="history-list">
+            <div class="no-history">No translations yet.<br>Upload your first video above!</div>
+          </div>
+        </div>
+
+      </div><!-- /side-stack -->
+    </div><!-- /main-grid -->
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<script>
+// FIX #6: Use relative URLs so the app works on any host, not just localhost
+const BASE_URL = "";
+
+let selectedLang = 'hi';
+let selectedFile = null;
+let jobId = null;
+let videoFilename = null;
+let processingActive = false;
+let selectedEngine = 'edge';
+let lipSyncEnabled = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserInfo();
+  setupDragDrop();
+  loadHistory();
+});
+
+// ================= LANGUAGE =================
+function selectLang(el) {
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLang = el.dataset.lang;
+  
+  if (selectedEngine === 'xtts' && selectedLang !== 'hi') {
+    showToast("Voice Clone is only supported for Hindi. This language will fall back to Neural Voice.", "error");
+  }
+}
+
+function selectEngine(engine) {
+  selectedEngine = engine;
+  document.getElementById('engineEdge').classList.remove('selected');
+  document.getElementById('engineXtts').classList.remove('selected');
+  if (engine === 'edge') {
+    document.getElementById('engineEdge').classList.add('selected');
+  } else {
+    document.getElementById('engineXtts').classList.add('selected');
+    if (selectedLang !== 'hi') {
+      showToast("Voice Clone is only supported for Hindi. Other languages will fall back to Neural Voice.", "error");
+    }
+  }
+}
+
+function toggleLipSync(enabled) {
+  lipSyncEnabled = enabled;
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.innerText = msg;
+  toast.className = 'toast show ' + type;
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 4000);
+}
+
+// ================= USER =================
+async function loadUserInfo() {
+  try {
+    // FIX #1: /api/me now exists in backend
+    const res = await fetch(BASE_URL + '/api/me', {
+      credentials: 'include'
+    });
+
+    if (res.status === 401) {
+      // FIX #4: Redirect to /login (not /login.html)
+      window.location.href = '/login';
+      return;
+    }
+
+    const data = await res.json();
+    document.getElementById('sidebarName').textContent = data.name || "User";
+    document.getElementById('avatarInitial').textContent =
+      (data.name || "U")[0].toUpperCase();
+
+  } catch {
+    // FIX #4: Redirect to /login (not /login.html)
+    window.location.href = '/login';
+  }
+}
+
+// ================= LOGOUT =================
+async function handleLogout() {
+  // FIX #2: /api/logout now exists in backend
+  await fetch(BASE_URL + '/api/logout', {
+    method: 'POST',
+    credentials: 'include'
+  });
+  // FIX #4: Redirect to /login (not /login.html)
+  window.location.href = '/login';
+}
+
+// ================= FILE =================
+function setupDragDrop() {
+  const dz = document.getElementById('dropZone');
+
+  dz.addEventListener('dragover', e => {
+    e.preventDefault();
+    dz.classList.add('dragover');
+  });
+
+  dz.addEventListener('dragleave', () =>
+    dz.classList.remove('dragover')
+  );
+
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+}
+
+function handleFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (!['mp4','avi','mov','mkv','webm'].includes(ext)) {
+    return showError("Invalid file format. Allowed: MP4, AVI, MOV, MKV, WEBM");
+  }
+
+  selectedFile = file;
+  document.getElementById('fileSelected').style.display = 'flex';
+  document.getElementById('fileNameDisplay').textContent = file.name;
+  document.getElementById('fileSizeDisplay').textContent =
+    (file.size / (1024 * 1024)).toFixed(2) + " MB";
+  document.getElementById('translateBtn').disabled = false;
+  hideError();
+}
+
+function removeFile() {
+  selectedFile = null;
+  document.getElementById('fileSelected').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('translateBtn').disabled = true;
+}
+
+// ================= TRANSLATE =================
+// FIX #3: Replace the broken /upload + polling approach with the real API flow:
+//   POST /api/upload → POST /api/translate → POST /api/generate
+async function startTranslation() {
+  if (!selectedFile || processingActive) return;
+
+  processingActive = true;
+  hideError();
+  setStep(1);
+  showProgress();
+  setBtnLoading(true);
+
+  try {
+    // Step 1: Upload & transcribe
+    setProgLabel("Uploading and transcribing…");
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+
+    const uploadRes = await fetch(BASE_URL + '/api/upload', {
+      method: 'POST',
+      body: fd,
+      credentials: 'include'
+    });
+
+    if (!uploadRes.ok) {
+      const err = await uploadRes.json().catch(() => ({}));
+      throw new Error(err.error || 'Upload failed');
+    }
+
+    const uploadData = await uploadRes.json();
+    jobId = uploadData.job_id;
+    videoFilename = uploadData.video_filename;
+    let segments = uploadData.segments;
+
+    setStep(2);
+    updateProgress(30);
+
+    // Step 2: Translate segments
+    setProgLabel("Translating segments…");
+    const translateRes = await fetch(BASE_URL + '/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ segments, target_language: selectedLang })
+    });
+
+    if (!translateRes.ok) throw new Error('Translation failed');
+    const translateData = await translateRes.json();
+    segments = translateData.segments;
+
+    setStep(3);
+    updateProgress(60);
+
+    // Step 3: Generate TTS and merge video
+    setProgLabel(lipSyncEnabled ? "Generating voice and syncing lips (this may take a minute)…" : "Generating voice and merging video…");
+    const generateRes = await fetch(BASE_URL + '/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        jobId,
+        videoFilename,
+        segments,
+        target_language: selectedLang,
+        tts_engine: selectedEngine,
+        lip_sync: lipSyncEnabled
+      })
+    });
+
+    if (!generateRes.ok) {
+      const err = await generateRes.json().catch(() => ({}));
+      throw new Error(err.error || 'Video generation failed');
+    }
+
+    const generateData = await generateRes.json();
+
+    setStep(5);
+    updateProgress(100);
+    setProgLabel("Done!");
+
+    // FIX #5: Use correct /api/download/ path
+    showDownload(generateData.output_video);
+    await loadHistory(); // refresh count and history list
+
+  } catch (err) {
+    showError(err.message || "Something went wrong. Please try again.");
+  } finally {
+    processingActive = false;
+    setBtnLoading(false);
+  }
+}
+
+// ================= UI HELPERS =================
+function setStep(n) {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('ps' + i);
+    if (!el) continue;
+    el.className = 'prog-step' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+
+function setProgLabel(msg) {
+  const el = document.getElementById('progLabel');
+  if (el) el.textContent = msg;
+  const msg2 = document.getElementById('progMsg');
+  if (msg2) msg2.textContent = msg;
+}
+
+function setBtnLoading(loading) {
+  const btn = document.getElementById('translateBtn');
+  const spinner = document.getElementById('spinner');
+  const text = document.getElementById('btnText');
+  if (btn) btn.disabled = loading;
+  if (spinner) spinner.style.display = loading ? 'block' : 'none';
+  if (text) text.textContent = loading ? 'Processing…' : '⚡ Translate Video';
+}
+
+function updateProgress(p) {
+  const fill = document.getElementById('progFill');
+  const pct = document.getElementById('progPct');
+  if (fill) fill.style.width = p + '%';
+  if (pct) pct.innerText = p + '%';
+}
+
+function showProgress() {
+  const el = document.getElementById('progressPanel');
+  if (el) el.style.display = 'block';
+}
+
+function showDownload(file) {
+  const panel = document.getElementById('downloadPanel');
+  const btn = document.getElementById('dlBtn');
+  if (panel) panel.style.display = 'block';
+  // FIX #5: Correct download URL path
+  if (btn) btn.href = BASE_URL + '/api/download/' + file;
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  if (el) { el.innerText = msg; el.style.display = 'block'; }
+}
+
+function hideError() {
+  const el = document.getElementById('errorBanner');
+  if (el) el.style.display = 'none';
+}
+
+function resetAll() {
+  selectedFile = null;
+  jobId = null;
+  videoFilename = null;
+  processingActive = false;
+  document.getElementById('fileSelected').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('progressPanel').style.display = 'none';
+  document.getElementById('downloadPanel').style.display = 'none';
+  document.getElementById('translateBtn').disabled = true;
+  hideError();
+  updateProgress(0);
+  setStep(0);
+  setBtnLoading(false);
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch(BASE_URL + '/api/history', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Update stat counter
+    const statEl = document.getElementById('statVideos');
+    if (statEl) statEl.textContent = data.total;
+
+    // Render history list
+    const list = document.getElementById('historyList');
+    if (!list) return;
+
+    if (!data.jobs || data.jobs.length === 0) {
+      list.innerHTML = '<div class="no-history">No translations yet.<br>Upload your first video above!</div>';
+      return;
+    }
+
+    const LANG_FLAGS = {
+      hi: '🇮🇳', mr: '🇮🇳', ta: '🇮🇳', te: '🇮🇳', bn: '🇮🇳', gu: '🇮🇳'
+    };
+
+    list.innerHTML = data.jobs.map(job => {
+      const name = job.original_filename.length > 28
+        ? job.original_filename.slice(0, 25) + '...'
+        : job.original_filename;
+      const flag = LANG_FLAGS[job.target_language] || '🌐';
+      const date = new Date(job.created_at).toLocaleDateString();
+      return `
+        <div class="hist-item">
+          <span class="hist-icon">🎬</span>
+          <span class="hist-name" title="${job.original_filename}">${name}</span>
+          <span class="hist-lang">${flag} ${job.language_name}</span>
+          <a href="${BASE_URL}/api/download/${job.output_video}"
+             style="font-size:18px;text-decoration:none;color:var(--muted);margin-left:4px;"
+             title="Download (${date})">⬇</a>
+        </div>`;
+    }).join('');
+
+  } catch (e) {
+    console.warn('History load failed', e);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoxBridge — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d0d14;
+  --paper: #f5f3ee;
+  --accent: #e8611a;
+  --accent2: #1a3de8;
+  --muted: #8a8880;
+  --border: rgba(13,13,20,0.12);
+  --card: #ffffff;
+  --error: #d63031;
+  --success: #00b894;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+.panel-left {
+  width: 52%;
+  background: var(--ink);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  overflow: hidden;
+}
+
+.panel-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 50% at 70% 80%, rgba(26,61,232,0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 40% at 20% 20%, rgba(232,97,26,0.3) 0%, transparent 60%);
+}
+
+.logo {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.logo-mark {
+  width: 40px; height: 40px;
+  background: var(--accent2);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+
+.logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px;
+}
+
+.hero-content { position: relative; z-index: 2; }
+
+.hero-tag {
+  display: inline-block;
+  background: rgba(26,61,232,0.2);
+  border: 1px solid rgba(26,61,232,0.4);
+  color: #7b96ff;
+  font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+  padding: 5px 12px; border-radius: 50px; margin-bottom: 24px;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(34px, 4vw, 50px); font-weight: 800; color: #fff;
+  line-height: 1.1; margin-bottom: 20px; letter-spacing: -1.5px;
+}
+
+.hero-title span { color: #7b96ff; }
+
+.hero-desc {
+  font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.7; max-width: 360px;
+}
+
+.steps {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.step {
+  display: flex; align-items: center; gap: 16px;
+  color: rgba(255,255,255,0.7); font-size: 14px;
+}
+
+.step-num {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5);
+}
+
+.orb {
+  position: absolute; border-radius: 50%; filter: blur(60px);
+  animation: float 6s ease-in-out infinite;
+}
+.orb1 { width:300px; height:300px; background:rgba(26,61,232,0.15); bottom:15%; right:-80px; animation-delay:0s; }
+.orb2 { width:200px; height:200px; background:rgba(232,97,26,0.12); top:15%; left:-40px; animation-delay:3s; }
+
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+.panel-right {
+  flex: 1;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 48px;
+  background: var(--paper);
+  overflow-y: auto;
+}
+
+.form-box { width: 100%; max-width: 420px; }
+
+.form-header { margin-bottom: 32px; }
+
+.form-header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 30px; font-weight: 700; letter-spacing: -1px; margin-bottom: 8px;
+}
+
+.form-header p { font-size: 14px; color: var(--muted); }
+.form-header a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+.field { margin-bottom: 18px; }
+
+.field label {
+  display: block; font-size: 12px; font-weight: 500;
+  letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+
+.field input {
+  width: 100%; padding: 13px 16px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink);
+  background: var(--card); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field input:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 4px rgba(26,61,232,0.08);
+}
+
+.field input.valid { border-color: var(--success); }
+.field input.invalid { border-color: var(--error); }
+
+.strength-bar {
+  height: 3px; background: var(--border); border-radius: 10px;
+  margin-top: 8px; overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%; width: 0; border-radius: 10px;
+  transition: width 0.3s, background 0.3s;
+}
+
+.strength-text { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.terms {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: var(--muted); margin: 20px 0;
+}
+
+.terms input { accent-color: var(--accent2); margin-top: 2px; flex-shrink: 0; }
+.terms a { color: var(--accent2); text-decoration: none; }
+
+.btn-submit {
+  width: 100%; padding: 15px;
+  background: var(--ink); color: #fff;
+  border: none; border-radius: 10px;
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+}
+
+.btn-submit:hover {
+  background: var(--accent2);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(26,61,232,0.3);
+}
+
+.btn-submit.loading { pointer-events: none; opacity: 0.7; }
+
+.alert {
+  padding: 12px 16px; border-radius: 8px; font-size: 13px;
+  margin-bottom: 18px; display: none;
+}
+
+.alert.error { background: rgba(214,48,49,0.08); color: var(--error); border: 1px solid rgba(214,48,49,0.2); }
+.alert.success { background: rgba(0,184,148,0.08); color: var(--success); border: 1px solid rgba(0,184,148,0.2); }
+
+@media (max-width: 768px) {
+  .panel-left { display: none; }
+  .panel-right { padding: 40px 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="panel-left">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+
+  <div class="logo">
+    <div class="logo-mark">🎙</div>
+    <span class="logo-text">VoxBridge</span>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Free to Start</div>
+    <h1 class="hero-title">Start translating<br>in <span>60 seconds</span></h1>
+    <p class="hero-desc">Create your account and immediately begin translating videos with real-time voice sync across 6 Indian languages.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <span>Create your free account</span>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <span>Upload your video file</span>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <span>Choose your target language</span>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <span>Download your translated video</span>
+    </div>
+  </div>
+</div>
+
+<div class="panel-right">
+  <div class="form-box">
+    <div class="form-header">
+      <h2>Create your account</h2>
+      <p>Already have one? <a href="/login">Sign in instead</a></p>
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="name" placeholder="Arjun Sharma" autocomplete="name">
+    </div>
+
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="arjun@example.com" autocomplete="email">
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Min 6 characters" oninput="checkStrength(this.value)">
+      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+      <div class="strength-text" id="strengthText"></div>
+    </div>
+
+    <div class="field">
+      <label>Confirm Password</label>
+      <input type="password" id="confirm" placeholder="••••••••">
+    </div>
+
+    <label class="terms">
+      <input type="checkbox" id="terms">
+      I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+    </label>
+
+    <button class="btn-submit" id="regBtn" onclick="handleRegister()">Create Account →</button>
+
+    <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--muted);">
+      Already registered? <a href="/login" style="color:var(--accent2);text-decoration:none;font-weight:500;">Sign in →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function checkStrength(pwd) {
+  const fill = document.getElementById('strengthFill');
+  const text = document.getElementById('strengthText');
+  if (!pwd) { fill.style.width = '0'; text.textContent = ''; return; }
+
+  let score = 0;
+  if (pwd.length >= 6) score++;
+  if (pwd.length >= 10) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+
+  const levels = [
+    { pct: '20%', color: '#d63031', label: 'Very weak' },
+    { pct: '40%', color: '#e17055', label: 'Weak' },
+    { pct: '60%', color: '#fdcb6e', label: 'Fair' },
+    { pct: '80%', color: '#00b894', label: 'Strong' },
+    { pct: '100%', color: '#00cec9', label: 'Very strong' },
+  ];
+
+  const lvl = levels[Math.min(score - 1, 4)] || levels[0];
+  fill.style.width = lvl.pct;
+  fill.style.background = lvl.color;
+  text.textContent = lvl.label;
+  text.style.color = lvl.color;
+}
+
+function showAlert(msg, type) {
+  const el = document.getElementById('alert');
+  el.textContent = msg;
+  el.className = `alert ${type}`;
+  el.style.display = 'block';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleRegister();
+});
+
+async function handleRegister() {
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('confirm').value;
+  const terms = document.getElementById('terms').checked;
+  const btn = document.getElementById('regBtn');
+
+  if (!name || !email || !password || !confirm) {
+    showAlert('Please fill in all fields.', 'error');
+    return;
+  }
+  if (password.length < 6) {
+    showAlert('Password must be at least 6 characters.', 'error');
+    return;
+  }
+  if (password !== confirm) {
+    showAlert('Passwords do not match.', 'error');
+    return;
+  }
+  if (!terms) {
+    showAlert('Please accept the Terms of Service.', 'error');
+    return;
+  }
+
+  btn.textContent = 'Creating account...';
+  btn.classList.add('loading');
+
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showAlert(data.error || 'Registration failed.', 'error');
+      btn.textContent = 'Create Account →';
+      btn.classList.remove('loading');
+    } else {
+      showAlert(`Account created! Welcome, ${data.name}!`, 'success');
+      setTimeout(() => window.location.href = '/', 1000);
+    }
+  } catch (err) {
+    showAlert('Network error. Please try again.', 'error');
+    btn.textContent = 'Create Account →';
+    btn.classList.remove('loading');
+  }
+}
+</script>
+</body>
+</html>
