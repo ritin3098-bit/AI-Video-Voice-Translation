@@ -1,37 +1,103 @@
+# ==========================
 # Python
+# ==========================
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
 
+# ==========================
 # Virtual environments
+# ==========================
 venv/
 env/
 .venv/
+ENV/
 
+# ==========================
 # Environment variables / secrets
+# ==========================
 .env
 .env.*
+*.pem
+*.key
+secrets.json
 
-# Generated files
+# ==========================
+# Django specific
+# ==========================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+*.db
+*.sqlite
+*.sqlite3
+media/
+staticfiles/
+
+# ==========================
+# Databases (catches things like users.db)
+# ==========================
+*.db
+*.db-journal
+
+# ==========================
+# Jupyter Notebook
+# ==========================
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ==========================
+# Generated / runtime files
+# ==========================
 outputs/*
 uploads/*
 work/*
+temp/
+tmp/
+
+# ==========================
+# Media & archives
+# (raw data files are fine to track deliberately,
+#  but generated/user-uploaded media and zips should not be)
+# ==========================
 *.mp3
 *.wav
 *.mp4
 *.avi
 *.mov
+*.srt
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
 
-# Model/cache files
+# ==========================
+# ML models / weights / checkpoints
+# ==========================
 *.pth
 *.pt
 *.ckpt
 *.onnx
 *.bin
+*.pkl
+*.pickle
+*.h5
+*.joblib
+ml_models/trained_models/*
+!ml_models/trained_models/.gitkeep
 
+# ==========================
 # IDE
+# ==========================
 .vscode/
 .idea/
+*.swp
 
+# ==========================
 # OS
+# ==========================
 .DS_Store
 Thumbs.db
