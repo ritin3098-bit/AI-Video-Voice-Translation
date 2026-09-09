@@ -1,0 +1,15 @@
+Flask
+Flask-Cors
+Werkzeug
+deep-translator
+edge-tts
+openai-whisper
+torch
+torchvision
+torchaudio
+TTS
+librosa
+numpy
+scipy
+opencv-python
+filterpy
