@@ -6,6 +6,9 @@ The project is designed to take video/audio input, process speech, generate tran
 
 Disclaimer: This project is intended for educational, research, and portfolio purposes. Generated translations and synthesized voices may contain errors and should be reviewed before professional or public use.
 
+Demo Video Link is:
+https://drive.google.com/file/d/1MqyN-5GsmSXOKeB2Al7iacZp5E8GV-Xf/view?usp=drive_link
+
 ✨ Features
 
 🎬 Video processing and translation workflow
