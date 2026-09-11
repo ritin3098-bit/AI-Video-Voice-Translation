@@ -67,7 +67,7 @@ project/
 ├── templates/               # Web/application templates
 ├── uploads/                 # User-uploaded files
 ├── wav2lip/                 # Wav2Lip components
-├── work/                    # Temporary/work files
+├── work/                    # Temporary/work file
 │
 ├── app.py                   # Main application
 ├── main.py                  # Main processing workflow
